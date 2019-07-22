@@ -1,4 +1,4 @@
-const game = new Phaser.Game(1080, 608, Phaser.AUTO, '', {
+const game = new Phaser.Game(1080, 608, Phaser.CANVAS, '', {
     preload: preload,
     create: create,
     update: update
@@ -46,12 +46,6 @@ function create() {
     damageItems = game.add.group();
     damageItems.enableBody = true;
 
-    for(var i = 2; i< 15; i++ ){
-        createFallingItem(damageItems, i, 10, 1000);
-    }
-    
-    
-
     //set player
     //player = game.add.sprite(32, game.world.height - 150, 'woof');
     //game.physics.arcade.enable(player);
@@ -75,9 +69,11 @@ function create() {
         diamond.body.collideWorldBounds = true;
     }*/
 
-    player1DamageText = game.add.text( 2* tileOffset, 16, '0', { fontSize: '64px', fill: '#000' });
-    player2DamageText = game.add.text(game.world.width -  2 * tileOffset , 16, '0', { fontSize: '64px', fill: '#000' });
+
     //cursors = game.input.keyboard.createCursorKeys();
+    
+    setPlayerText();
+    scaleWindow();
 }
 
 function update() {
@@ -150,4 +146,16 @@ function createFallingItem(group, horizontalStart , verticalStart, gravity){
     tempItem.body.bounce.y = 0.2;
 }
 
+function setPlayerText(){
+    player1DamageText = game.add.text( 2* tileOffset, 16, '0', { fontSize: '64px', fill: '#000' });
+    player2DamageText = game.add.text(game.world.width -  2 * tileOffset , 16, '0', { fontSize: '64px', fill: '#000' });
+}
+
+
+function scaleWindow(){
+    game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
+    game.scale.pageAlignHorizontally = true;
+    game.scale.pageAlignVertically = true;
+    game.scale.setScreenSize(true);
+}
 
