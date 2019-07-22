@@ -11,12 +11,16 @@ function preload() {
     game.load.image('background', 'assets/Background.png');
     game.load.image('grass-mid', 'assets/Ground/GrassMid.png');
     game.load.image('mace', 'assets/env/mace.png');
-    //game.load.spritesheet('woof', 'assets/woof.png', 32, 32);
 }
 
 let platforms;
 let damageItems;
-//let player;
+let player1;
+let player2;
+let player1Damage = 0;
+let player2Damage = 0;
+let player1DamageText = 0;
+let player2DamageText = 0;
 //let diamonds;
 //let scoreText;
 //let score = 0;
@@ -40,8 +44,12 @@ function create() {
     createPlatform(platforms, 6, 10 , 6 );
 
     damageItems = game.add.group();
-    damageItems.enableBody = true
-    createFallingItem(damageItems, 2, 10, 10);
+    damageItems.enableBody = true;
+
+    for(var i = 2; i< 15; i++ ){
+        createFallingItem(damageItems, i, 10, 1000);
+    }
+    
     
 
     //set player
@@ -67,7 +75,8 @@ function create() {
         diamond.body.collideWorldBounds = true;
     }*/
 
-    //scoreText = game.add.text(16, 16, '', { fontSize: '32px', fill: '#000' });
+    player1DamageText = game.add.text( 2* tileOffset, 16, '0', { fontSize: '64px', fill: '#000' });
+    player2DamageText = game.add.text(game.world.width -  2 * tileOffset , 16, '0', { fontSize: '64px', fill: '#000' });
     //cursors = game.input.keyboard.createCursorKeys();
 }
 
@@ -124,9 +133,21 @@ function createPlatform(group, horizontalStart , horizontalEnd,  verticalStart )
     }    
 }
 
-function createFallingItem(group, horizontalStart , verticalStart, damage){
-    let tempItem = group.create(horizontalStart * tileOffset , game.world.height - (verticalStart * tileOffset) , 'mace'  );
-    tempItem.body.gravity.y = 1000;
-    tempItem.body.bounce.y = 0.3;
+/**
+ * 
+ * @param {game group} group 
+ * @param {number} horizontalStart 
+ * @param {number} verticalStart 
+ * @param {number} damage 
+ */
+function createFallingItem(group, horizontalStart , verticalStart, gravity){
+    let tempItem = group.create(
+        horizontalStart * tileOffset , 
+        game.world.height - (verticalStart * tileOffset) , 
+        'mace'  
+        );
+    tempItem.body.gravity.y = gravity;
+    tempItem.body.bounce.y = 0.2;
 }
+
 
