@@ -77,10 +77,14 @@ function create() {
 
     setPlayerText();
     startTimer();
+    game.time.events.repeat(Phaser.Timer.SECOND * 1, 120, createFallingDamageItem, this);
     scaleWindow();
 }
 
+
+
 function update() {
+    //Collision between falling damageItem and Platforms
     game.physics.arcade.collide(damageItems, platforms);
     //COllisions between player and platforms
     /*game.physics.arcade.collide(player, platforms);
@@ -148,7 +152,7 @@ function createPlatform(group, horizontalStart, horizontalEnd, verticalStart) {
  * @param {number} verticalStart 
  * @param {number} damage 
  */
-function createFallingItem(group, horizontalStart, verticalStart, gravity) {
+function createFallingItem(group, horizontalStart, verticalStart, gravity, lifespan) {
     let tempItem = group.create(
         horizontalStart * tileOffset,
         game.world.height - (verticalStart * tileOffset),
@@ -156,6 +160,12 @@ function createFallingItem(group, horizontalStart, verticalStart, gravity) {
     );
     tempItem.body.gravity.y = gravity;
     tempItem.body.bounce.y = 0.2;
+    tempItem.lifespan = lifespan;
+}
+
+function createFallingDamageItem() {
+    let random = game.rnd.integerInRange(2, 14);
+    createFallingItem(damageItems, random, 11, 1000, 2500);
 }
 
 
@@ -172,6 +182,8 @@ function scaleWindow() {
     game.scale.pageAlignVertically = true;
     game.scale.setScreenSize(true);
 }
+
+
 
 /**Set timer */
 function startTimer() {
