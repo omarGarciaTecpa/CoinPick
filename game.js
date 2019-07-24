@@ -20,6 +20,7 @@ function preload() {
     game.load.image('background', 'assets/Background.png');
     game.load.image('grass-mid', 'assets/Ground/GrassMid.png');
     game.load.image('mace', 'assets/env/mace.png');
+    game.load.spritesheet('coin', 'assets/env/coin.png', 64, 64);
 }
 
 
@@ -114,7 +115,7 @@ function createPlatform(group, horizontalStart, horizontalEnd, verticalStart) {
  * @param {number} verticalStart 
  * @param {number} damage 
  */
-function createFallingItem(group, horizontalStart, verticalStart, gravity, lifespan, sprite) {
+function createStaticFallingItem(group, horizontalStart, verticalStart, gravity, lifespan, sprite) {
     let tempItem = group.create(
         horizontalStart * tileOffset,
         game.world.height - (verticalStart * tileOffset),
@@ -123,17 +124,21 @@ function createFallingItem(group, horizontalStart, verticalStart, gravity, lifes
     tempItem.body.gravity.y = gravity;
     tempItem.body.bounce.y = 0.2;
     tempItem.lifespan = lifespan;
+
+    return tempItem;
 }
 
 
 function createFallingDamageItem() {
     let random = game.rnd.integerInRange(2, 14);
-    createFallingItem(damageItems, random, 11, 1000, 2500, 'mace');
+    createStaticFallingItem(damageItems, random, 11, 1000, 2500, 'mace');
 }
 
 function createFallingHealingItem() {
     let random = game.rnd.integerInRange(2, 14);
-    createFallingItem(healingItems, random , 11, 800, 5000, 'mace');
+    let tempItem  = createStaticFallingItem(healingItems, random , 11, 800, 5000, 'coin');
+    tempItem.animations.add('spin', [0,1,2,3,4], 5, true);
+    tempItem.animations.play('spin');
 }
 
 
