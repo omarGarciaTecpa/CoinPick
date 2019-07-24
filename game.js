@@ -1,16 +1,3 @@
-class Player{
-    playerItem;
-    damage;
-    damageText;  
-
-    constructor(obj){
-        this.playerItem = obj.playerItem;
-        this.damage = obj.damage;
-        this.damageText = obj.damageText;
-    }
-}
-
-
 const game = new Phaser.Game(1080, 608, Phaser.CANVAS, '', {
     preload: preload,
     create: create,
@@ -25,12 +12,6 @@ let damageItems;
 let healingItems;
 let timerText;
 let cursors;
-
-let player1 = new Player({damage : 0, damageText : ''});
-let player2 = new Player({damage : 0, damageText : ''});
-
-
-
 
 
 
@@ -70,24 +51,9 @@ function create() {
     healingItems = game.add.group();
     healingItems.enableBody = true;
 
-    //set player
-    createPlayer(player1, 2, 3, 'mace');
-    createPlayer(player2, 14, 3, 'mace');
-    
-    //player.body.collideWorldBounds = true;
-
-    //player.animations.add('left', [0, 1], 10, true);
-    //player.animations.add('right', [2, 3], 10, true);
-
-
-    //set diamonds
-    //diamonds = game.add.group();
-    //diamonds.enableBody = true;
-
 
     cursors = game.input.keyboard.createCursorKeys();
 
-    setPlayerText();
     
     startTimer();
 
@@ -109,43 +75,7 @@ function update() {
     game.physics.arcade.collide(healingItems, platforms);
     game.physics.arcade.collide(healingItems, healingItems);
     game.physics.arcade.collide(healingItems, damageItems);
-
-
-    //Collisions between player and platforms
-    game.physics.arcade.collide(player1.playerItem, platforms);
-    game.physics.arcade.collide(player1.playerItem, healingItems);
-    game.physics.arcade.collide(player1.playerItem, damageItems);
-    game.physics.arcade.overlap(player1, damageItems, collectDiamond, null, this);
-
-    game.physics.arcade.collide(player2.playerItem, platforms);
-    game.physics.arcade.collide(player2.playerItem, healingItems);
-    game.physics.arcade.collide(player2.playerItem, damageItems);
-    game.physics.arcade.overlap(player2, damageItems, collectDiamond, null, this);
-
-    game.physics.arcade.collide(player1.playerItem, player2.playerItem);
     
-
-    /*game.physics.arcade.collide(diamonds, platforms);
-    
-
-    player.body.velocity.x = 0;*/
-
-    /*
-    if (cursors.left.isDown) {
-        player.body.velocity.x = -150;
-        player.animations.play('left');
-    } else if (cursors.right.isDown) {
-        player.body.velocity.x = 150;
-        player.animations.play('right');
-    }else{
-        player.animations.stop();
-    }*/
-
-    /*
-    if (cursors.up.isDown && player.body.touching.down) {
-        player.body.velocity.y = -400;
-    }*/
-
 
 }
 
@@ -157,20 +87,6 @@ function render() {
     }
 }
 
-
-function collectDiamond(player, diamond) {    
-    console.log("overlap");
-    diamond.kill();
-    player.damage += 10;
-    player.damageText = player.damage ;
-}
-
-function createPlayer(player, horizontalStart, verticalStart, sprite){
-    player.playerItem = game.add.sprite(horizontalStart * tileOffset , game.world.height - verticalStart * tileOffset, sprite);
-    game.physics.arcade.enable(player.playerItem);
-    player.playerItem.body.bounce.y = 0.2;
-    player.playerItem.body.gravity.y = 800;
-}
 
 
 /**
@@ -221,11 +137,6 @@ function createFallingHealingItem() {
 }
 
 
-/** Setup Player related text*/
-function setPlayerText() {
-    player1.damageText = game.add.text(2 * tileOffset, 16, '0', { fontSize: '64px', fill: '#000' });
-    player2.damageText = game.add.text(game.world.width - 2 * tileOffset, 16, '0', { fontSize: '64px', fill: '#000' });
-}
 
 /** Scale game window to window size*/
 function scaleWindow() {
