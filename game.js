@@ -24,22 +24,30 @@ const environment = {
     backgroundImage: 'assets/Background.png',
     grassImage: 'assets/Ground/GrassMid.png',
     grassYOffset: 10,
+    //mace Sprite Config  -------------------------
     maceImage: 'assets/env/mace.png',
+    maceSizeX: 64,
+    maceSizeY: 64,
+    maceAnimationArray: [0],
+    maceFramerate: 10,
+    maceSpeed: 15,
     //Coin Sprite config ---------------------------
     coinImage: 'assets/env/coin.png',
     coinSizeX: 64,
     coinSizeY: 64,
     coinAnimationArray: [0, 1, 2, 3, 4],
-    coinFramerate: 5
+    coinFramerate: 10,
+    coinSpeed: 15
 };
 
-
+//Player related configuration
 const playerConfig = {
     playerImage: 'assets/player.png',
     playerSizeX: 64,
     playerSizeY: 64,
     idleAnimationArray: [0, 1, 2, 3, 4],
-    idleFramerate: 5
+    idleFramerate: 5,
+    idleSpeed: 20
 }
 
 //Gameplay Config
@@ -77,13 +85,21 @@ function preload() {
     //Preload asset images 
     game.load.image('background', environment.backgroundImage);
     game.load.image('grass-mid', environment.grassImage);
-    game.load.image('mace', environment.maceImage);
+
+    game.load.spritesheet(
+        'mace',
+        environment.maceImage,
+        environment.maceSizeX,
+        environment.maceSizeY
+    );
+
     game.load.spritesheet(
         'coin',
         environment.coinImage,
         environment.coinSizeX,
         environment.coinSizeY
     );
+
     game.load.spritesheet(
         'player',
         playerConfig.playerImage,
@@ -183,7 +199,9 @@ function createPlayer() {
         player.idleFramerate,
         true);
 
+        
     player.animations.play('idle');
+    player.animations.currentAnim.speed = playerConfig.idleSpeed;
 }
 
 
@@ -206,7 +224,7 @@ function createPlatform(group, horizontalStart, horizontalEnd, verticalStart) {
     }
 }
 
-
+/** Sets up the random generators for damage and healing items */
 function createLoopedGenerators() {
     //Generate damage items with random position
     game.time.events.repeat(
@@ -234,7 +252,7 @@ function createLoopedGenerators() {
  * @param {number} verticalStart 
  * @param {number} damage 
  */
-function createStaticFallingItem(group, horizontalStart, verticalStart, gravity, lifespan, sprite) {
+function createFallingItem(group, horizontalStart, verticalStart, gravity, lifespan, sprite, animationConfig) {
     let tempItem = group.create(
         horizontalStart * config.tileOffSet,
         game.world.height - (verticalStart * config.tileOffSet),
@@ -244,44 +262,55 @@ function createStaticFallingItem(group, horizontalStart, verticalStart, gravity,
     tempItem.body.bounce.y = 0.2;
     tempItem.lifespan = lifespan;
 
-    return tempItem;
+    if (animationConfig) {
+        tempItem.animations.add(
+            'animate',
+            animationConfig.animationArray,
+            animationConfig.frameRate,
+            true);
+
+        tempItem.animations.play('animate');
+        tempItem.animations.currentAnim.speed = animationConfig.speed;
+    }
+
 }
 
 
 /** Creates a falling item that belongs to the damageGroup*/
 function createFallingDamageItem() {
     let random = game.rnd.integerInRange(gamePlay.damageItemXMin, gamePlay.damageItemXMax);
-    createStaticFallingItem(
+    let tempItem =  createFallingItem(
         damageItems,
         random,
         11,
         gamePlay.damageItemGravity,
         gamePlay.damageItemLifespan,
-        'mace'
+        'mace',
+        {
+            animationArray: environment.maceAnimationArray,
+            frameRate: environment.maceFramerate,
+            speed: environment.maceSpeed
+        }
     );
 }
 
 
 /** Creates a Falling item that belongs to the HealingGroup */
 function createFallingHealingItem() {
-    let random = game.rnd.integerInRange(gamePlay.healingItemXMax, gamePlay.healingItemXMax);
-    let tempItem = createStaticFallingItem(
+    let random = game.rnd.integerInRange(gamePlay.healingItemXMin, gamePlay.healingItemXMax);
+    let tempItem = createFallingItem(
         healingItems,
         random,
         11,
         gamePlay.healingItemGravity,
         gamePlay.healingItemLifespan,
-        'coin'
+        'coin',
+        {
+            animationArray: environment.coinAnimationArray,
+            frameRate: environment.coinFramerate,
+            speed: environment.coinSpeed
+        }
     );
-
-    //Add Animation to the coin sprite
-    tempItem.animations.add(
-        'spin',
-        environment.coinAnimationArray,
-        environment.coinFramerate,
-        true);
-
-    tempItem.animations.play('spin');
 }
 
 
