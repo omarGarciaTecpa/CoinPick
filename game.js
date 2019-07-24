@@ -12,6 +12,7 @@ let damageItems;
 let healingItems;
 let timerText;
 let cursors;
+let showDebug = false;
 
 
 
@@ -29,7 +30,7 @@ function preload() {
 
 function create() {
     //start physics system
-    game.physics.startSystem(Phaser.Physics.Arcade);
+    //game.physics.startSystem(Phaser.Physics.Arcade);
 
     //add the sprite for the sky background
     game.add.sprite(0, 0, 'background');
@@ -86,8 +87,20 @@ function render() {
     if (timer.running) {
         timerText.text = formatTime(timerEvent.delay - timer.ms);
     }
+
+    if (showDebug)
+    {
+        // call renderGroup on each of the alive members    
+        damageItems.forEachAlive(renderGroup, this);
+        healingItems.forEachAlive(renderGroup, this);
+        platforms.forEachAlive(renderGroup, this);
+        
+    }
 }
 
+function renderGroup(member) {    
+    game.debug.body(member);
+}
 
 
 /**
@@ -104,7 +117,8 @@ function createPlatform(group, horizontalStart, horizontalEnd, verticalStart) {
     let ground;
     for (i = horizontalStart; i < horizontalEnd; i++) {
         ground = group.create(i * tileOffset, game.world.height - (tileOffset * verticalStart), 'grass-mid');
-        ground.body.immovable = true;
+        ground.body.setSize(64, 30, 0, 10);
+          ground.body.immovable = true;
     }
 }
 
