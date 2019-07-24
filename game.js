@@ -6,31 +6,97 @@ const game = new Phaser.Game(1080, 608, Phaser.CANVAS, '', {
 });
 
 
-const tileOffset = 64;
+//General Config
+const config = {
+    tileOffSet: 64,
+    showDebug: true
+}
+
+//Text Message Config
+const textMessages = {
+    timerColor: '#000',
+    timerMinutes: 2,
+    timerSeconds: 0
+}
+
+//Environment related Config
+const environment = {
+    backgroundImage: 'assets/Background.png',
+    grassImage: 'assets/Ground/GrassMid.png',
+    grassYOffset: 10,
+    maceImage: 'assets/env/mace.png',
+    //Coin Sprite config ---------------------------
+    coinImage: 'assets/env/coin.png',
+    coinSizeX: 64,
+    coinSizeY: 64,
+    coinAnimationArray: [0, 1, 2, 3, 4],
+    coinFramerate: 5
+};
+
+
+const playerConfig = {
+    playerImage: 'assets/player.png',
+    playerSizeX: 64,
+    playerSizeY: 64,
+    idleAnimationArray: [0, 1, 2, 3, 4],
+    idleFramerate: 5
+}
+
+//Gameplay Config
+const gamePlay = {
+    //Damage Item Config ---------------------------
+    damageItemTime: 1000,
+    damageItemAmount: 120,
+    damageItemDamage: 20,
+    damageItemLifespan: 3000,
+    damageItemGravity: 1000,
+    damageItemXMin: 2,
+    damageItemXMax: 14,
+    //Healing Item Config --------------------------
+    healingItemTime: 3000,
+    healingItemAmount: 40,
+    healingItemDamage: -10,
+    healingItemLifespan: 5000,
+    healingItemGravity: 700,
+    healingItemXMin: 2,
+    healingItemXMax: 14
+};
+
+
+//Internal variables, these are not configurable with koji
 let platforms;
 let damageItems;
 let healingItems;
 let timerText;
 let cursors;
-let showDebug = false;
+let player;
 
 
 
 function preload() {
     //Preload asset images 
-    game.load.image('background', 'assets/Background.png');
-    game.load.image('grass-mid', 'assets/Ground/GrassMid.png');
-    game.load.image('mace', 'assets/env/mace.png');
-    game.load.spritesheet('coin', 'assets/env/coin.png', 64, 64);
+    game.load.image('background', environment.backgroundImage);
+    game.load.image('grass-mid', environment.grassImage);
+    game.load.image('mace', environment.maceImage);
+    game.load.spritesheet(
+        'coin',
+        environment.coinImage,
+        environment.coinSizeX,
+        environment.coinSizeY
+    );
+    game.load.spritesheet(
+        'player',
+        playerConfig.playerImage,
+        playerConfig.playerSizeX,
+        playerConfig.playerSizeY
+    );
 }
-
-
 
 
 
 function create() {
     //start physics system
-    //game.physics.startSystem(Phaser.Physics.Arcade);
+    game.physics.startSystem(Phaser.Physics.Arcade);
 
     //add the sprite for the sky background
     game.add.sprite(0, 0, 'background');
@@ -53,15 +119,12 @@ function create() {
     healingItems = game.add.group();
     healingItems.enableBody = true;
 
-
+    //Create curson keys
     cursors = game.input.keyboard.createCursorKeys();
 
-    
+    createPlayer();
     startTimer();
-
-    game.time.events.repeat(Phaser.Timer.SECOND * 1, 120, createFallingDamageItem, this);
-    game.time.events.repeat(Phaser.Timer.SECOND * 5, 20, createFallingHealingItem, this);
-    
+    createLoopedGenerators();
     scaleWindow();
 }
 
@@ -77,7 +140,9 @@ function update() {
     game.physics.arcade.collide(healingItems, platforms);
     game.physics.arcade.collide(healingItems, healingItems);
     game.physics.arcade.collide(healingItems, damageItems);
-    
+
+    game.physics.arcade.collide(player, platforms);
+
 
 }
 
@@ -88,18 +153,37 @@ function render() {
         timerText.text = formatTime(timerEvent.delay - timer.ms);
     }
 
-    if (showDebug)
-    {
+    if (config.showDebug) {
         // call renderGroup on each of the alive members    
         damageItems.forEachAlive(renderGroup, this);
         healingItems.forEachAlive(renderGroup, this);
         platforms.forEachAlive(renderGroup, this);
-        
+        renderGroup(player);
+
     }
 }
 
-function renderGroup(member) {    
+
+
+/** Debug rendering for the elements of the group*/
+function renderGroup(member) {
     game.debug.body(member);
+}
+
+
+function createPlayer() {
+    player = game.add.sprite(config.tileOffSet * 3, game.world.height - config.tileOffSet * 3, 'player');
+    game.physics.arcade.enable(player);
+    player.body.gravity.y = 800;
+    player.body.bounce.y = 0.2;
+
+    player.animations.add(
+        'idle',
+        player.idleAnimationArray,
+        player.idleFramerate,
+        true);
+
+    player.animations.play('idle');
 }
 
 
@@ -116,11 +200,32 @@ function renderGroup(member) {
 function createPlatform(group, horizontalStart, horizontalEnd, verticalStart) {
     let ground;
     for (i = horizontalStart; i < horizontalEnd; i++) {
-        ground = group.create(i * tileOffset, game.world.height - (tileOffset * verticalStart), 'grass-mid');
-        ground.body.setSize(64, 30, 0, 10);
-          ground.body.immovable = true;
+        ground = group.create(i * config.tileOffSet, game.world.height - (config.tileOffSet * verticalStart), 'grass-mid');
+        ground.body.setSize(config.tileOffSet, config.tileOffSet, 0, environment.grassYOffset);
+        ground.body.immovable = true;
     }
 }
+
+
+function createLoopedGenerators() {
+    //Generate damage items with random position
+    game.time.events.repeat(
+        gamePlay.damageItemTime,
+        gamePlay.damageItemAmount,
+        createFallingDamageItem,
+        this
+    );
+
+    //Generate damage items with random position
+    game.time.events.repeat(
+        gamePlay.healingItemTime,
+        gamePlay.healingItemAmount,
+        createFallingHealingItem,
+        this
+    );
+
+}
+
 
 /**
  * Creates a falling item. 
@@ -131,8 +236,8 @@ function createPlatform(group, horizontalStart, horizontalEnd, verticalStart) {
  */
 function createStaticFallingItem(group, horizontalStart, verticalStart, gravity, lifespan, sprite) {
     let tempItem = group.create(
-        horizontalStart * tileOffset,
-        game.world.height - (verticalStart * tileOffset),
+        horizontalStart * config.tileOffSet,
+        game.world.height - (verticalStart * config.tileOffSet),
         sprite
     );
     tempItem.body.gravity.y = gravity;
@@ -143,15 +248,39 @@ function createStaticFallingItem(group, horizontalStart, verticalStart, gravity,
 }
 
 
+/** Creates a falling item that belongs to the damageGroup*/
 function createFallingDamageItem() {
-    let random = game.rnd.integerInRange(2, 14);
-    createStaticFallingItem(damageItems, random, 11, 1000, 2500, 'mace');
+    let random = game.rnd.integerInRange(gamePlay.damageItemXMin, gamePlay.damageItemXMax);
+    createStaticFallingItem(
+        damageItems,
+        random,
+        11,
+        gamePlay.damageItemGravity,
+        gamePlay.damageItemLifespan,
+        'mace'
+    );
 }
 
+
+/** Creates a Falling item that belongs to the HealingGroup */
 function createFallingHealingItem() {
-    let random = game.rnd.integerInRange(2, 14);
-    let tempItem  = createStaticFallingItem(healingItems, random , 11, 800, 5000, 'coin');
-    tempItem.animations.add('spin', [0,1,2,3,4], 5, true);
+    let random = game.rnd.integerInRange(gamePlay.healingItemXMax, gamePlay.healingItemXMax);
+    let tempItem = createStaticFallingItem(
+        healingItems,
+        random,
+        11,
+        gamePlay.healingItemGravity,
+        gamePlay.healingItemLifespan,
+        'coin'
+    );
+
+    //Add Animation to the coin sprite
+    tempItem.animations.add(
+        'spin',
+        environment.coinAnimationArray,
+        environment.coinFramerate,
+        true);
+
     tempItem.animations.play('spin');
 }
 
@@ -169,15 +298,23 @@ function scaleWindow() {
 
 /**Set timer */
 function startTimer() {
-    timerText = game.add.text(8 * tileOffset, 16, '0', { fontSize: '64px', fill: '#000' });
+    timerText = game.add.text(8 * config.tileOffSet, 16, '0', { fontSize: '64px', fill: textMessages.timerColor });
     timer = game.time.create();
+
     // Create a delayed event 1m and 30s from now
-    timerEvent = timer.add(Phaser.Timer.MINUTE * 2 + Phaser.Timer.SECOND * 00, endBattle, game);
+    timerEvent = timer.add(
+        Phaser.Timer.MINUTE * textMessages.timerMinutes + Phaser.Timer.SECOND * textMessages.timerSeconds,
+        endGame,
+        game
+    );
+
     // Start the timer
     timer.start();
 }
 
-function endBattle() {
+
+
+function endGame() {
     // Stop the timer when the delayed event triggers
     timer.stop();
     //End battle events
@@ -188,10 +325,10 @@ function endBattle() {
  * @param {*} miliseconds milliseconds from event
  */
 function formatTime(miliseconds) {
-    let toSeconds = Math.round(miliseconds/ 1000);
+    let toSeconds = Math.round(miliseconds / 1000);
     // Convert seconds (s) to a nicely formatted and padded time string
     var minutes = "0" + Math.floor(toSeconds / 60);
     var seconds = "0" + (toSeconds - minutes * 60);
-    return minutes.substr(-2) + ":" + seconds.substr(-2);   
+    return minutes.substr(-2) + ":" + seconds.substr(-2);
 }
 
