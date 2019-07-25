@@ -16,7 +16,9 @@ const config = {
 const textMessages = {
     timerColor: '#000',
     timerMinutes: 2,
-    timerSeconds: 0
+    timerSeconds: 0,
+    scoreColor: '#000',
+    healthColor: '#000',
 }
 
 //Environment related Config
@@ -91,9 +93,10 @@ let healingItems;
 let timerText;
 let cursors;
 let player;
+let healthText;
 let jumpButton;
-let jumpTimer = 0;
-
+let score = 0;
+let scoreText;
 
 
 function preload() {
@@ -157,12 +160,22 @@ function create() {
     createPlayer();
     startTimer();
     createLoopedGenerators();
+
+    scoreText = game.add.text(2 * config.tileOffSet, 16, 'Score: 0', { fontSize: '64px', fill: textMessages.scoreColor });
+    healthText = game.add.text(4 * config.tileOffSet, 16, "HP: " + (player.health * 100) + "%", { fontSize: '64px', fill: textMessages.scoreColor });
+
     scaleWindow();
 }
 
 
 
 function update() {
+    if (!player.alive) {
+        player.health = 0;
+        updateHealth();
+        endGame();
+    } 
+
     //Collision between falling damageItem and Platforms
     game.physics.arcade.collide(damageItems, platforms);
     game.physics.arcade.collide(damageItems, damageItems);
@@ -173,11 +186,15 @@ function update() {
     game.physics.arcade.collide(healingItems, healingItems);
     game.physics.arcade.collide(healingItems, damageItems);
 
+    //Colliders for user
     game.physics.arcade.collide(player, platforms);
+    game.physics.arcade.overlap(player, healingItems, handleHeal, null, this);
+    game.physics.arcade.overlap(player, damageItems, handleDamage, null, this);
 
     setupControls();
 
 }
+
 
 
 function render() {
@@ -188,9 +205,9 @@ function render() {
 
     if (config.showDebug) {
         // call renderGroup on each of the alive members    
-        //damageItems.forEachAlive(renderGroup, this);
-        //healingItems.forEachAlive(renderGroup, this);
-        //platforms.forEachAlive(renderGroup, this);
+        damageItems.forEachAlive(renderGroup, this);
+        healingItems.forEachAlive(renderGroup, this);
+        platforms.forEachAlive(renderGroup, this);
         renderGroup(player);
 
     }
@@ -222,6 +239,12 @@ function createPlayer() {
     game.physics.arcade.enable(player);
     player.body.gravity.y = 900;
     player.body.bounce.y = 0.2;
+
+    //Check if player is out of bound
+    player.checkWorldBounds = true;
+
+    //Set player to die if out of bounds
+    player.outOfBoundsKill = true;
 
     //Sets collide box size and position
     player.body.setSize(
@@ -293,6 +316,38 @@ function setupControls() {
     }
 }
 
+/** Takes effect when player collects a coin */
+function handleHeal(player, item) {
+    item.kill();
+    player.heal = 0.1;
+    score += 10;
+    scoreText.text = "Score: " + score;
+    updateHealth();
+}
+
+function handleDamage(player, item) {
+    item.kill();    
+    player.damage(0.2);
+    updateHealth();
+
+}
+
+function updateHealth() {
+    let health = Math.round(player.health * 100);
+    healthText.text = "HP: " + (health) + "%";
+    console.log(health);
+
+    if (health === 0) {
+        player.kill();
+        endGame();
+    }
+}
+
+function checkOutOfBounds() {
+    console.log(player);
+}
+
+
 /**
  * Creates a platform and adds it to a group.
  * 
@@ -321,6 +376,7 @@ function createPlatform(group, horizontalStart, horizontalEnd, verticalStart) {
         ground.body.checkCollision.down = false;
     }
 }
+
 
 /** Sets up the random generators for damage and healing items */
 function createLoopedGenerators() {
@@ -446,6 +502,8 @@ function endGame() {
     timer.stop();
     //End battle events
 }
+
+
 
 /**
  * Formats the time nively
