@@ -50,7 +50,7 @@ const playerConfig = {
 	//Idle animation ------
 	idleAnimationArray: [0, 1, 2, 3, 4, 5],
 	idleFramerate: 10,
-	idleSpeed: 15,
+	idleSpeed: 8,
 	//Jump animation  -----
 	jumpAnimationArray: [6, 7, 7, 7, 8, 9],
 	jumpFramerate: 10,
@@ -58,7 +58,8 @@ const playerConfig = {
 	//Run animation  -----
 	runAnimationArray: [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
 	runFramerate: 10,
-	runSpeed: 8
+    runSpeed: 20,
+    runMovementSpeed: 400
 }
 
 //Gameplay Config
@@ -170,6 +171,7 @@ function update() {
 
 	game.physics.arcade.collide(player, platforms);
 
+    setupControls();
 
 }
 
@@ -206,6 +208,8 @@ function calculateCBOffset(size, desiredSize) {
 	return (size / 2) - (desiredSize / 2);
 }
 
+
+/** Creates and configures the player sprite */
 function createPlayer() {
 	//Place the sprite
 	player = game.add.sprite(config.tileOffSet * 1, game.world.height - config.tileOffSet * 4, 'player');
@@ -248,12 +252,33 @@ function createPlayer() {
 	);
 
 	//Start the default animation
-	player.animations.play('run');
+	player.animations.play('idle');
 
 	//Set the speed for that animation
 	player.animations.currentAnim.speed = playerConfig.idleSpeed;
 }
 
+
+
+function setupControls(){
+    //  We want the player to stop when not moving
+    player.body.velocity.x = 0
+
+    if (cursors.left.isDown) {
+        player.body.velocity.x = -1 * playerConfig.runMovementSpeed;
+        player.animations.play('run');
+        player.animations.currentAnim.speed = playerConfig.runSpeed;
+
+    } else if (cursors.right.isDown) {
+        player.body.velocity.x = playerConfig.runMovementSpeed;
+        player.animations.play('run');
+        player.animations.currentAnim.speed = playerConfig.runSpeed;
+    } else {
+        // If no movement keys are pressed, stop the player
+        player.animations.play('idle');
+        player.animations.currentAnim.speed = playerConfig.idleSpeed;
+    }
+}
 
 /**
  * Creates a platform and adds it to a group.
