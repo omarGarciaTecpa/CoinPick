@@ -5,8 +5,8 @@ var PlayState = {
     healingItemsGroup: undefined,
     timerText: undefined,
     cursors: undefined,
-    player: undefined,
-    healthText: undefined,
+    player: {},
+    healthText: '',
     jumpButton: undefined,
     score: 0,
     scoreText: '',
@@ -31,13 +31,20 @@ var PlayState = {
         this.damageItemsGroup = game.add.group();
         this.damageItemsGroup.enableBody = true;
 
-        //delare group for healing items
+        //declare group for healing items
         this.healingItemsGroup = game.add.group();
         this.healingItemsGroup.enableBody = true;
 
-        //Create curson keys
+        //Create cursor keys
         this.cursors = game.input.keyboard.createCursorKeys();
+
+        //Create custom jump button
         this.jumpButton = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+
+        this.playerConf.create(this);
+
+        this.scoreText = game.add.text(2 * config.tileOffSet, 16, 'Score: 0', { fontSize: '64px', fill: textMessages.scoreColor });
+        this.healthText = game.add.text(4 * config.tileOffSet, 16, "HP: " + (this.player.health * 100) + "%", { fontSize: '64px', fill: textMessages.scoreColor });
 
         this.loopItemGenerate();
         this.timerSetup();
@@ -45,15 +52,20 @@ var PlayState = {
 
 
     update: function () {
+        //Colliders for damage Item .......................................................
         //Collision between falling damageItem and Platforms
         game.physics.arcade.collide(this.damageItemsGroup, this.platformsGroup);
 
         //Do this to pile items
-        game.physics.arcade.collide(this.damageItemsGroup, this.damageItemsGroup); 
+        game.physics.arcade.collide(this.damageItemsGroup, this.damageItemsGroup);
 
         //DO this to push other items down
         game.physics.arcade.collide(this.damageItemsGroup, this.healingItemsGroup);
 
+
+
+
+        //Colliders form healing item ......................................................
         //Collision betweem falling healing items and platforms
         game.physics.arcade.collide(this.healingItemsGroup, this.platformsGroup);
 
@@ -62,6 +74,16 @@ var PlayState = {
 
         //Do this to push other items down
         game.physics.arcade.collide(this.healingItemsGroup, this.damageItemsGroup);
+
+
+
+        //Colliders for player...............................................................
+        game.physics.arcade.collide(this.player, this.platformsGroup);
+        game.physics.arcade.overlap(this.player, this.healingItemsGroup, this.playerConf.heal, null, this);
+        game.physics.arcade.overlap(this.player, this.damageItemsGroup, this.playerConf.damage, null, this);
+
+
+        this.playerConf.setupControls(this);
     },
 
 
@@ -164,8 +186,134 @@ var PlayState = {
     },
 
     //Player Functions ___________________________________________________________________________
-    player: {
+    playerConf: {
+        /**
+         * Calculates the offset needed to center the collider box o either x o y
+         * @param {any} size
+         * @param {any} desiredSize
+         */
+        calculateCBOffset: function (size, desiredSize) {
+            return (size / 2) - (desiredSize / 2);
+        },
+
+
+        /** Creates and configures the player sprite */
+        create: function (main) {
+            //Place the sprite
+            main.player = game.add.sprite(config.tileOffSet * 1, game.world.height - config.tileOffSet * 4, 'player');
+
+            //Add physics properties to the player gif
+            game.physics.arcade.enable(main.player);
+            main.player.body.gravity.y = 900;
+            main.player.body.bounce.y = 0.2;
+
+            //Check if player is out of bound
+            main.player.checkWorldBounds = true;
+
+            //Set player to die if out of bounds
+            main.player.outOfBoundsKill = true;
+
+            //Sets collide box size and position
+            main.player.body.setSize(
+                playerConfig.playerCBWidth,
+                playerConfig.playerCBHeight,
+                this.calculateCBOffset(playerConfig.playerSizeX, playerConfig.playerCBWidth),
+                this.calculateCBOffset(playerConfig.playerSizeY, playerConfig.playerCBHeight)
+            );
+
+            //Create Jump Animation
+            main.player.animations.add(
+                'idle',
+                playerConfig.idleAnimationArray,
+                main.player.idleFramerate,
+                true
+            );
+
+            //Create Jump animation. This one should not loop
+            main.player.animations.add(
+                'jump',
+                playerConfig.jumpAnimationArray,
+                main.player.jumpFramerate,
+                false
+            );
+
+            //Create the run animation
+            main.player.animations.add(
+                'run',
+                playerConfig.runAnimationArray,
+                main.player.runFramerate,
+                true
+            );
+
+            //Start the default animation
+            main.player.animations.play('idle');
+
+            //Set the speed for that animation
+            main.player.animations.currentAnim.speed = playerConfig.idleSpeed;
+        },
+
+
+        /** Takes effect when player collects a coin */
+        heal: function (player, item) {
+            item.kill();
+            player.heal = 0.1;
+            this.score += 10;
+            this.scoreText.text = "Score: " + this.score;
+            this.playerConf.updateHealth(this);
+        },
+
+
+        damage: function (player, item, main) {
+            item.kill();
+            player.damage(0.2);
+            this.playerConf.updateHealth(this);
+        },
+
+
+        //Updats value of the health 
+        updateHealth: function (main) {
+            let health = Math.round(main.player.health * 100);
+            main.healthText.text = "HP: " + (health) + "%";
+
+            if (health === 0) {
+                main.player.kill();
+                main.loseGame();
+            }
+        },
+
+
+        /** Setup basic animations and movement */
+        setupControls: function (main) {
+            //  We want the player to stop when not moving
+            main.player.body.velocity.x = 0
+
+            if (main.cursors.left.isDown) {
+                main.player.body.velocity.x = -1 * playerConfig.runMovementSpeed;
+                if (main.player.body.touching.down) {
+                    main.player.animations.play('run');
+                    main.player.animations.currentAnim.speed = playerConfig.runSpeed;
+                }
+            } else if (main.cursors.right.isDown) {
+                main.player.body.velocity.x = playerConfig.runMovementSpeed;
+                if (main.player.body.touching.down) {
+                    main.player.animations.play('run');
+                    main.player.animations.currentAnim.speed = playerConfig.runSpeed;
+                }
+            } else {
+                // If no movement keys are pressed, stop the player
+                main.player.animations.play('idle');
+                main.player.animations.currentAnim.speed = playerConfig.idleSpeed;
+            }
+
+            if (main.jumpButton.isDown && main.player.body.touching.down) {
+                main.player.body.velocity.y = -1 * playerConfig.jumpMovementSpeed;
+                main.player.animations.play('jump');
+                main.player.animations.currentAnim.speed = playerConfig.jumpSpeed;
+            }
+        },
     },
+
+
 
     // Item Functions ___________________________________________________________________________
     /**
