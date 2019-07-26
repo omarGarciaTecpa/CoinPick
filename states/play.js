@@ -1,3 +1,9 @@
+const FACING_STATE = {
+    left: 0,
+    right: 1
+}
+
+
 var PlayState = {
     //State properties   _____________________________________________________________________
     platformsGroup: undefined,
@@ -11,6 +17,8 @@ var PlayState = {
     score: 0,
     scoreText: '',
     timer: undefined,
+    lastFacing: FACING_STATE.right,
+
 
     //Main functions ____________________________________________________________________________
     create: function () {
@@ -24,7 +32,7 @@ var PlayState = {
         //Create the platforms that are required
         this.platforms.createPlatform(this.platformsGroup, 2, 15, 2);
         this.platforms.createPlatform(this.platformsGroup, 3, 5, 4);
-        this.platforms.createPlatform(this.platformsGroup, 12, 14, 5);
+        this.platforms.createPlatform(this.platformsGroup, 12, 14, 6);
         this.platforms.createPlatform(this.platformsGroup, 6, 10, 6);
 
         //declare group for damage items
@@ -44,7 +52,7 @@ var PlayState = {
         this.playerConf.create(this);
 
         this.scoreText = game.add.text(2 * config.tileOffSet, 16, 'Score: 0', { fontSize: '64px', fill: textMessages.scoreColor });
-        this.healthText = game.add.text(4 * config.tileOffSet, 16, "HP: " + (this.player.health * 100) + "%", { fontSize: '64px', fill: textMessages.scoreColor });
+        this.healthText = game.add.text(11 * config.tileOffSet, 16, "HP: " + this.player.health + "/" + this.player.maxHealth, { fontSize: '64px', fill: textMessages.scoreColor });
 
         this.loopItemGenerate();
         this.timerSetup();
@@ -202,6 +210,9 @@ var PlayState = {
             //Place the sprite
             main.player = game.add.sprite(config.tileOffSet * 1, game.world.height - config.tileOffSet * 4, 'player');
 
+            main.player.maxHealth = playerConfig.playerMaxHealth;
+            main.player.health = playerConfig.playerHealth;
+
             //Add physics properties to the player gif
             game.physics.arcade.enable(main.player);
             main.player.body.gravity.y = 900;
@@ -223,30 +234,53 @@ var PlayState = {
 
             //Create Jump Animation
             main.player.animations.add(
-                'idle',
-                playerConfig.idleAnimationArray,
-                main.player.idleFramerate,
+                'idle-left',
+                playerConfig.idleLeftAnimationArray,
+                playerConfig.idleFramerate,
+                true
+            );
+
+            main.player.animations.add(
+                'idle-right',
+                playerConfig.idleRightAnimationArray,
+                playerConfig.idleFramerate,
                 true
             );
 
             //Create Jump animation. This one should not loop
             main.player.animations.add(
-                'jump',
-                playerConfig.jumpAnimationArray,
-                main.player.jumpFramerate,
+                'jump-left',
+                playerConfig.jumpLeftAnimationArray,
+                playerConfig.jumpFramerate,
+                false
+            );
+
+            main.player.animations.add(
+                'jump-right',
+                playerConfig.jumpRightAnimationArray,
+                playerConfig.jumpFramerate,
                 false
             );
 
             //Create the run animation
             main.player.animations.add(
-                'run',
-                playerConfig.runAnimationArray,
-                main.player.runFramerate,
+                'run-left',
+                playerConfig.runLeftAnimationArray,
+                playerConfig.runFramerate,
                 true
             );
 
+            main.player.animations.add(
+                'run-right',
+                playerConfig.runRightAnimationArray,
+                playerConfig.runFramerate,
+                true
+            );
+
+
+
             //Start the default animation
-            main.player.animations.play('idle');
+            main.player.animations.play('idle-right');
 
             //Set the speed for that animation
             main.player.animations.currentAnim.speed = playerConfig.idleSpeed;
@@ -256,8 +290,8 @@ var PlayState = {
         /** Takes effect when player collects a coin */
         heal: function (player, item) {
             item.kill();
-            player.heal = 0.1;
-            this.score += 10;
+            player.health = Math.min(100, player.health + playerConfig.itemHeal);
+            this.score += playerConfig.itemScore;
             this.scoreText.text = "Score: " + this.score;
             this.playerConf.updateHealth(this);
         },
@@ -265,17 +299,16 @@ var PlayState = {
 
         damage: function (player, item, main) {
             item.kill();
-            player.damage(0.2);
+            player.damage(playerConfig.maceDamage);
             this.playerConf.updateHealth(this);
         },
 
 
         //Updats value of the health 
         updateHealth: function (main) {
-            let health = Math.round(main.player.health * 100);
-            main.healthText.text = "HP: " + (health) + "%";
+            main.healthText.text = "HP: " + main.player.health + "/" + main.player.maxHealth;
 
-            if (health === 0) {
+            if (main.player.health === 0) {
                 main.player.kill();
                 main.loseGame();
             }
@@ -289,25 +322,36 @@ var PlayState = {
 
             if (main.cursors.left.isDown) {
                 main.player.body.velocity.x = -1 * playerConfig.runMovementSpeed;
+                main.lastFacing = FACING_STATE.left;
                 if (main.player.body.touching.down) {
-                    main.player.animations.play('run');
+                    main.player.animations.play('run-left');
                     main.player.animations.currentAnim.speed = playerConfig.runSpeed;
                 }
             } else if (main.cursors.right.isDown) {
                 main.player.body.velocity.x = playerConfig.runMovementSpeed;
+                main.lastFacing = FACING_STATE.right;
                 if (main.player.body.touching.down) {
-                    main.player.animations.play('run');
+                    main.player.animations.play('run-right');
                     main.player.animations.currentAnim.speed = playerConfig.runSpeed;
                 }
             } else {
                 // If no movement keys are pressed, stop the player
-                main.player.animations.play('idle');
+                if (main.lastFacing == FACING_STATE.right) {
+                    main.player.animations.play('idle-right');
+                } else {
+                    main.player.animations.play('idle-left');
+                }
                 main.player.animations.currentAnim.speed = playerConfig.idleSpeed;
             }
 
             if (main.jumpButton.isDown && main.player.body.touching.down) {
                 main.player.body.velocity.y = -1 * playerConfig.jumpMovementSpeed;
-                main.player.animations.play('jump');
+                if (main.lastFacing == FACING_STATE.right) {
+                    main.player.animations.play('jump-right');
+                } else {
+                    main.player.animations.play('jump-left');
+                }
+
                 main.player.animations.currentAnim.speed = playerConfig.jumpSpeed;
             }
         },

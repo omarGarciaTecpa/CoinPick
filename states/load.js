@@ -45,17 +45,26 @@ const playerConfig = {
     playerSizeY: 80,
     playerCBWidth: 54, //Collider box desired width
     playerCBHeight: 60, //collider box desired height
+    //Health
+    playerHealth: 100,
+    playerMaxHealth: 100,
+    maceDamage: 20,
+    itemHeal: 5,
+    itemScore: 20,
     //Idle animation ------
-    idleAnimationArray: [0, 1, 2, 3, 4, 5],
+    idleLeftAnimationArray: [0, 1, 2, 3, 4, 5],
+    idleRightAnimationArray: [20, 21, 22, 23, 24, 25],
     idleFramerate: 10,
     idleSpeed: 8,
     //Jump animation  -----
-    jumpAnimationArray: [6, 7, 7, 7, 8, 9],
+    jumpLeftAnimationArray: [6, 7, 7, 7, 8, 9],
+    jumpRightAnimationArray: [26, 27, 27, 27, 28, 29],
     jumpFramerate: 10,
     jumpSpeed: 8,
     jumpMovementSpeed: 550,
     //Run animation  -----
-    runAnimationArray: [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
+    runLeftAnimationArray: [10, 11, 12, 13, 14, 15, 16, 17, 18, 19],
+    runRightAnimationArray: [30, 31, 32, 33, 34, 35, 36, 37, 38, 39],
     runFramerate: 10,
     runSpeed: 20,
     runMovementSpeed: 400
