@@ -109,6 +109,8 @@ var LoadState = {
         //Preload asset images 
         game.load.image('background', environment.backgroundImage);
         game.load.image('menuBackground', environment.menuBackgroundImage);
+        game.load.image('loseBackground', environment.loseBackgroundImage);
+        game.load.image('winBackground', environment.winBackgroundImage);
         game.load.image('grass-mid', environment.grassImage);
 
         game.load.spritesheet(

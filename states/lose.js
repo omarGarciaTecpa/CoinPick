@@ -1,5 +1,8 @@
 var LoseState = {
     create: function () {
+        //add the sprite for the sky background
+        game.add.sprite(0, 0, 'loseBackground');
+
         //Calculate center 
         let yPos = game.world.height / 2;
 
