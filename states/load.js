@@ -7,19 +7,28 @@ const config = {
 //Text Message Config
 const textMessages = {
     gameTitle: 'Coin Pick Ninja',
-    gameTitleColor: '#fff',
-    instructionMsg: 'Press "space" to Start',
-    instructionColor: '#fff',
+    gameTitleColor: '#000',    
+    instructionMsg: 'Press "space" to play',
+    instructionColor: '#000',
     timerColor: '#000',
-    timerMinutes: 2,
-    timerSeconds: 0,
+    timerMinutes: 0,
+    timerSeconds: 20,
     scoreColor: '#000',
     healthColor: '#000',
+    loseGameTitle: "You Lost",
+    loseGameInstruction: 'Press "space" to play again',
+    loseGameTitleColor: '#000',
+    winGameTitle: "You Won !!!!!",
+    winGameInstruction: 'Press "space" to play again',
+    winGameTitleColor: '#000',
 }
 
 //Environment related Config
 const environment = {
     backgroundImage: 'assets/Background.png',
+    menuBackgroundImage: 'assets/Background.png',
+    winBackgroundImage: 'assets/Background.png',
+    loseBackgroundImage: 'assets/Background.png',
     grassImage: 'assets/Ground/GrassMid.png',
     grassYOffset: 10,
     //mace Sprite Config  -------------------------
@@ -45,6 +54,7 @@ const playerConfig = {
     playerSizeY: 80,
     playerCBWidth: 54, //Collider box desired width
     playerCBHeight: 60, //collider box desired height
+    playerGravity: 1300,
     //Health
     playerHealth: 100,
     playerMaxHealth: 100,
@@ -61,7 +71,7 @@ const playerConfig = {
     jumpRightAnimationArray: [26, 27, 27, 27, 28, 29],
     jumpFramerate: 10,
     jumpSpeed: 8,
-    jumpMovementSpeed: 550,
+    jumpMovementSpeed: 600,
     //Run animation  -----
     runLeftAnimationArray: [10, 11, 12, 13, 14, 15, 16, 17, 18, 19],
     runRightAnimationArray: [30, 31, 32, 33, 34, 35, 36, 37, 38, 39],
@@ -90,12 +100,15 @@ const gamePlay = {
     healingItemXMax: 14
 };
 
+//Score variable to pass to the other states
+var GAME_FINAL_SCORE = 0;
 
 
 var LoadState = {
     preload: function () {
         //Preload asset images 
         game.load.image('background', environment.backgroundImage);
+        game.load.image('menuBackground', environment.menuBackgroundImage);
         game.load.image('grass-mid', environment.grassImage);
 
         game.load.spritesheet(
@@ -118,6 +131,7 @@ var LoadState = {
             playerConfig.playerSizeX,
             playerConfig.playerSizeY
         );
+
     },
     create: function () {
         game.state.start('menu');

@@ -22,6 +22,7 @@ var PlayState = {
 
     //Main functions ____________________________________________________________________________
     create: function () {
+        GAME_FINAL_SCORE = 0;
         //add the sprite for the sky background
         game.add.sprite(0, 0, 'background');
 
@@ -49,49 +50,71 @@ var PlayState = {
         //Create custom jump button
         this.jumpButton = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
 
-        this.playerConf.create(this);
+        //Create the player
+        this.playerFunctions.create(this);
 
-        this.scoreText = game.add.text(2 * config.tileOffSet, 16, 'Score: 0', { fontSize: '64px', fill: textMessages.scoreColor });
-        this.healthText = game.add.text(11 * config.tileOffSet, 16, "HP: " + this.player.health + "/" + this.player.maxHealth, { fontSize: '64px', fill: textMessages.scoreColor });
+        //Create the score text
+        this.scoreText = game.add.text(
+            2 * config.tileOffSet,
+            16,
+            'Score: 0',
+            { fontSize: '64px', fill: textMessages.scoreColor }
+        );
 
+        //Create the health Text
+        this.healthText = game.add.text(
+            11 * config.tileOffSet,
+            16,
+            "HP: " + this.player.health + "/" + this.player.maxHealth,
+            { fontSize: '64px', fill: textMessages.scoreColor }
+        );
+
+        //Start automatic generations for the items
         this.loopItemGenerate();
+
+        //Initializes the game timer
         this.timerSetup();
     },
 
 
     update: function () {
-        //Colliders for damage Item .......................................................
-        //Collision between falling damageItem and Platforms
-        game.physics.arcade.collide(this.damageItemsGroup, this.platformsGroup);
+        //Player died, lose game
+        if (!this.player.alive) {
+            this.loseGame();
+        } else { //Player still alive
+            //Colliders for damage Item .......................................................
+            //Collision between falling damageItem and Platforms
+            game.physics.arcade.collide(this.damageItemsGroup, this.platformsGroup);
 
-        //Do this to pile items
-        game.physics.arcade.collide(this.damageItemsGroup, this.damageItemsGroup);
+            //Do this to pile items
+            game.physics.arcade.collide(this.damageItemsGroup, this.damageItemsGroup);
 
-        //DO this to push other items down
-        game.physics.arcade.collide(this.damageItemsGroup, this.healingItemsGroup);
-
-
-
-
-        //Colliders form healing item ......................................................
-        //Collision betweem falling healing items and platforms
-        game.physics.arcade.collide(this.healingItemsGroup, this.platformsGroup);
-
-        //DO this to stack items
-        game.physics.arcade.collide(this.healingItemsGroup, this.healingItemsGroup);
-
-        //Do this to push other items down
-        game.physics.arcade.collide(this.healingItemsGroup, this.damageItemsGroup);
+            //DO this to push other items down
+            game.physics.arcade.collide(this.damageItemsGroup, this.healingItemsGroup);
 
 
 
-        //Colliders for player...............................................................
-        game.physics.arcade.collide(this.player, this.platformsGroup);
-        game.physics.arcade.overlap(this.player, this.healingItemsGroup, this.playerConf.heal, null, this);
-        game.physics.arcade.overlap(this.player, this.damageItemsGroup, this.playerConf.damage, null, this);
+
+            //Colliders form healing item ......................................................
+            //Collision betweem falling healing items and platforms
+            game.physics.arcade.collide(this.healingItemsGroup, this.platformsGroup);
+
+            //DO this to stack items
+            game.physics.arcade.collide(this.healingItemsGroup, this.healingItemsGroup);
+
+            //Do this to push other items down
+            game.physics.arcade.collide(this.healingItemsGroup, this.damageItemsGroup);
 
 
-        this.playerConf.setupControls(this);
+
+            //Colliders for player...............................................................
+            game.physics.arcade.collide(this.player, this.platformsGroup);
+            game.physics.arcade.overlap(this.player, this.healingItemsGroup, this.playerFunctions.heal, null, this);
+            game.physics.arcade.overlap(this.player, this.damageItemsGroup, this.playerFunctions.damage, null, this);
+
+            //Setups the controls for the user
+            this.playerFunctions.setupControls(this);
+        }
     },
 
 
@@ -117,12 +140,13 @@ var PlayState = {
     // Miscellaneous   ___________________________________________________________________________
     //activated when game is lost
     loseGame: function () {
-
+        GAME_FINAL_SCORE = this.score;
+        game.state.start('lose');
     },
 
     //Activated when game is won
     winGame: function () {
-
+        game.state.start('win');
     },
 
     //Renders the collider debug of the sprites
@@ -133,10 +157,13 @@ var PlayState = {
 
     /** Initializes the game timer */
     timerSetup: function () {
+        //Set the timer text
         this.timerText = game.add.text(8 * config.tileOffSet, 16, '0', { fontSize: '64px', fill: textMessages.timerColor });
+
+        //create the timer
         this.timer = game.time.create();
 
-        // Create a delayed event 1m and 30s from now
+        // Create a delayed event 
         timerEvent = this.timer.add(
             Phaser.Timer.MINUTE * textMessages.timerMinutes + Phaser.Timer.SECOND * textMessages.timerSeconds,
             this.winGame,
@@ -162,6 +189,7 @@ var PlayState = {
     },
 
     //Platform Functions ________________________________________________________________________
+    //Holder object for functions related to the platform
     platforms: {
         /**
         * Creates a platform and adds it to a group.
@@ -194,7 +222,7 @@ var PlayState = {
     },
 
     //Player Functions ___________________________________________________________________________
-    playerConf: {
+    playerFunctions: {
         /**
          * Calculates the offset needed to center the collider box o either x o y
          * @param {any} size
@@ -210,12 +238,13 @@ var PlayState = {
             //Place the sprite
             main.player = game.add.sprite(config.tileOffSet * 1, game.world.height - config.tileOffSet * 4, 'player');
 
+            //Set player health
             main.player.maxHealth = playerConfig.playerMaxHealth;
             main.player.health = playerConfig.playerHealth;
 
-            //Add physics properties to the player gif
+            //Add physics properties to the player sprite
             game.physics.arcade.enable(main.player);
-            main.player.body.gravity.y = 900;
+            main.player.body.gravity.y = playerConfig.playerGravity;
             main.player.body.bounce.y = 0.2;
 
             //Check if player is out of bound
@@ -232,7 +261,7 @@ var PlayState = {
                 this.calculateCBOffset(playerConfig.playerSizeY, playerConfig.playerCBHeight)
             );
 
-            //Create Jump Animation
+            //Create left and right idle Animation
             main.player.animations.add(
                 'idle-left',
                 playerConfig.idleLeftAnimationArray,
@@ -247,7 +276,7 @@ var PlayState = {
                 true
             );
 
-            //Create Jump animation. This one should not loop
+            //Create left and right Jump animation. These should not loop
             main.player.animations.add(
                 'jump-left',
                 playerConfig.jumpLeftAnimationArray,
@@ -262,7 +291,7 @@ var PlayState = {
                 false
             );
 
-            //Create the run animation
+            //Create the left and right run animation
             main.player.animations.add(
                 'run-left',
                 playerConfig.runLeftAnimationArray,
@@ -278,7 +307,6 @@ var PlayState = {
             );
 
 
-
             //Start the default animation
             main.player.animations.play('idle-right');
 
@@ -287,31 +315,43 @@ var PlayState = {
         },
 
 
-        /** Takes effect when player collects a coin */
+        /**
+         *  Takes effect when player collects a coin
+         * @param {any} player player sprite
+         * @param {any} item item that overlapped
+         */
         heal: function (player, item) {
-            item.kill();
+            //Destroys the item
+            item.kill(); 
+
+            //Set health taking into account max health
             player.health = Math.min(100, player.health + playerConfig.itemHeal);
+
+            //Increase score
             this.score += playerConfig.itemScore;
             this.scoreText.text = "Score: " + this.score;
-            this.playerConf.updateHealth(this);
+            this.playerFunctions.updateHealth(this);
         },
 
+        /**
+         * Takes effect when player is damaged
+         * @param {any} player player sprite
+         * @param {any} item item that overlapped
 
-        damage: function (player, item, main) {
+         */
+        damage: function (player, item) {
             item.kill();
             player.damage(playerConfig.maceDamage);
-            this.playerConf.updateHealth(this);
+            this.playerFunctions.updateHealth(this);
         },
 
 
-        //Updats value of the health 
+        /**
+         * Updats value of the health
+         * @param {any} main reference to PlayState, needed to update health
+         */
         updateHealth: function (main) {
             main.healthText.text = "HP: " + main.player.health + "/" + main.player.maxHealth;
-
-            if (main.player.health === 0) {
-                main.player.kill();
-                main.loseGame();
-            }
         },
 
 
