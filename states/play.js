@@ -488,7 +488,7 @@ var PlayState = {
         tempItem.body.gravity.y = gravity;
         tempItem.body.bounce.y = 0.2;
         tempItem.lifespan = lifespan;
-
+        console.log(animationConfig);
         if (animationConfig != null) {
             tempItem.animations.add(
                 'animate',
