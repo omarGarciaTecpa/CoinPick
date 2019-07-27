@@ -1,4 +1,6 @@
 var MenuState = {
+    bgm: undefined,
+
     create: function () {
         //add the sprite for the sky background
         game.add.sprite(0, 0, 'menuBackground');

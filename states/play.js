@@ -18,13 +18,25 @@ var PlayState = {
     scoreText: '',
     timer: undefined,
     lastFacing: FACING_STATE.right,
+    coinSound: undefined,
+    jumpSound: undefined,
+    screamSound: undefined,
+    itemThudSound: undefined,
+    playerThudSound: undefined,
 
+    preload: function () {
+        GAME_FINAL_SCORE = 0;
+        this.score = 0;
+    },
 
     //Main functions ____________________________________________________________________________
     create: function () {
-        GAME_FINAL_SCORE = 0;
+        
         //add the sprite for the sky background
         game.add.sprite(0, 0, 'background');
+
+        //Setup sound 
+        this.setupSound();
 
         //add a group for platforms
         this.platformsGroup = game.add.group();
@@ -43,6 +55,8 @@ var PlayState = {
         //declare group for healing items
         this.healingItemsGroup = game.add.group();
         this.healingItemsGroup.enableBody = true;
+
+
 
         //Create cursor keys
         this.cursors = game.input.keyboard.createCursorKeys();
@@ -74,6 +88,9 @@ var PlayState = {
 
         //Initializes the game timer
         this.timerSetup();
+
+
+
     },
 
 
@@ -84,31 +101,31 @@ var PlayState = {
         } else { //Player still alive
             //Colliders for damage Item .......................................................
             //Collision between falling damageItem and Platforms
-            game.physics.arcade.collide(this.damageItemsGroup, this.platformsGroup);
+            game.physics.arcade.collide(this.damageItemsGroup, this.platformsGroup, this.itemThud);
 
             //Do this to pile items
-            game.physics.arcade.collide(this.damageItemsGroup, this.damageItemsGroup);
+            game.physics.arcade.collide(this.damageItemsGroup, this.damageItemsGroup, this.itemThud);
 
             //DO this to push other items down
-            game.physics.arcade.collide(this.damageItemsGroup, this.healingItemsGroup);
+            game.physics.arcade.collide(this.damageItemsGroup, this.healingItemsGroup, this.itemThud);
 
 
 
 
             //Colliders form healing item ......................................................
             //Collision betweem falling healing items and platforms
-            game.physics.arcade.collide(this.healingItemsGroup, this.platformsGroup);
+            game.physics.arcade.collide(this.healingItemsGroup, this.platformsGroup, this.itemThud);
 
             //DO this to stack items
-            game.physics.arcade.collide(this.healingItemsGroup, this.healingItemsGroup);
+            game.physics.arcade.collide(this.healingItemsGroup, this.healingItemsGroup, this.itemThud);
 
             //Do this to push other items down
-            game.physics.arcade.collide(this.healingItemsGroup, this.damageItemsGroup);
+            game.physics.arcade.collide(this.healingItemsGroup, this.damageItemsGroup, this.itemThud);
 
 
 
             //Colliders for player...............................................................
-            game.physics.arcade.collide(this.player, this.platformsGroup);
+            game.physics.arcade.collide(this.player, this.platformsGroup, this.playerFunctions.thud, null, this);
             game.physics.arcade.overlap(this.player, this.healingItemsGroup, this.playerFunctions.heal, null, this);
             game.physics.arcade.overlap(this.player, this.damageItemsGroup, this.playerFunctions.damage, null, this);
 
@@ -140,12 +157,12 @@ var PlayState = {
     // Miscellaneous   ___________________________________________________________________________
     //activated when game is lost
     loseGame: function () {
-        GAME_FINAL_SCORE = this.score;
         game.state.start('lose');
     },
 
     //Activated when game is won
     winGame: function () {
+        console.log('score');
         game.state.start('win');
     },
 
@@ -167,13 +184,27 @@ var PlayState = {
         timerEvent = this.timer.add(
             Phaser.Timer.MINUTE * textMessages.timerMinutes + Phaser.Timer.SECOND * textMessages.timerSeconds,
             this.winGame,
-            game
+            this
         );
 
         // Start the timer
         this.timer.start();
     },
 
+
+    /**Creates sounds */
+    setupSound: function() {
+        //Add coin sound
+        this.coinSound = game.sound.add("coin");
+        this.coinSound.volume = gameSound.coinVolume;
+        this.coinSound.allowMultiple = true;
+        //Add jump Sound
+        this.jumpSound = game.sound.add("jump");
+        this.jumpSound.volume = gameSound.jumpVolume;
+        //Add scream Sound
+        this.screamSound = game.sound.add("scream");
+        this.screamSound.volume = gameSound.screamVolume;
+    },
 
 
     /**
@@ -246,6 +277,11 @@ var PlayState = {
             game.physics.arcade.enable(main.player);
             main.player.body.gravity.y = playerConfig.playerGravity;
             main.player.body.bounce.y = 0.2;
+
+
+            //Add falling property
+            main.player.falling = true;
+
 
             //Check if player is out of bound
             main.player.checkWorldBounds = true;
@@ -324,13 +360,16 @@ var PlayState = {
             //Destroys the item
             item.kill(); 
 
+            this.coinSound.play();
             //Set health taking into account max health
             player.health = Math.min(100, player.health + playerConfig.itemHeal);
 
             //Increase score
             this.score += playerConfig.itemScore;
+            GAME_FINAL_SCORE = this.score;
             this.scoreText.text = "Score: " + this.score;
             this.playerFunctions.updateHealth(this);
+            
         },
 
         /**
@@ -343,6 +382,7 @@ var PlayState = {
             item.kill();
             player.damage(playerConfig.maceDamage);
             this.playerFunctions.updateHealth(this);
+            this.screamSound.play();
         },
 
 
@@ -392,9 +432,32 @@ var PlayState = {
                     main.player.animations.play('jump-left');
                 }
 
+                main.jumpSound.play();
+                //jump
                 main.player.animations.currentAnim.speed = playerConfig.jumpSpeed;
+
+                //setup falling
+                main.player.falling = true;
             }
         },
+
+        /**
+         * THud sound for the player
+         * @param {any} player
+         * @param {any} platform
+         */
+        thud: function (player, platform) {
+            if (player.falling) {
+                if (this.playerThudSound == undefined) {
+                    //Add item thud sound
+                    this.playerThudSound = game.sound.add("itemThud");
+                    this.playerThudSound.volume = gameSound.itemThudVolume;
+                    this.playerThudSound.allowMultiple = true;
+                }
+                this.playerThudSound.play();
+                player.falling = false;
+            }
+        }
     },
 
 
@@ -428,6 +491,9 @@ var PlayState = {
             tempItem.animations.currentAnim.speed = animationConfig.speed;
         }
 
+        //set a falling flag
+        tempItem.falling = true;
+
     },
 
     /**
@@ -437,7 +503,7 @@ var PlayState = {
     damageItemCreate: function () {
         //Random offset for x position
         let random = game.rnd.integerInRange(gamePlay.damageItemXMin, gamePlay.damageItemXMax);
-        this.ItemCreate(
+        let damageItem = this.ItemCreate(
             this.damageItemsGroup,
             random,
             11,
@@ -450,6 +516,7 @@ var PlayState = {
                 speed: environment.maceSpeed
             }
         );
+
     },
 
 
@@ -490,7 +557,20 @@ var PlayState = {
             this.healingItemCreate,
             this
         );
+    },
 
+    //Add thud sound for items
+    itemThud: function (item, platform) {
+        if (item.falling) {
+            if (this.itemThudSound == undefined) {
+                //Add item thud sound
+                this.itemThudSound = game.sound.add("itemThud");
+                this.itemThudSound.volume = gameSound.itemThudVolume;
+                this.itemThudSound.allowMultiple = true;
+            }
+            this.itemThudSound.play();
+            item.falling = false;
+        }
     }
 
 

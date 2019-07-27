@@ -12,8 +12,9 @@ var WinState = {
         //Add game start instruction 
         game.add.text(80, yPos + 64, textMessages.winGameInstruction, { fontSize: '48px', fill: textMessages.winGameTitleColor });
 
+
         //Add game score
-        game.add.text(120, yPos + 128, "Score: " + GAME_FINAL_SCORE, { fontSize: '48px', fill: textMessages.winGameTitleColor });
+        game.add.text(120, yPos + 128, "Score: " + GAME_FINAL_SCORE, { fontSize: '48px', fill: textMessages.loseGameTitleColor });
 
 
         //Assign start key

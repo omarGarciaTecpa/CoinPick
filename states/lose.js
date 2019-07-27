@@ -3,6 +3,12 @@ var LoseState = {
         //add the sprite for the sky background
         game.add.sprite(0, 0, 'loseBackground');
 
+        let loseSound = game.sound.add("bgmLose");
+        loseSound.volume = gameSound.bgmLoseVolume;
+        loseSound.play();
+
+        
+
         //Calculate center 
         let yPos = game.world.height / 2;
 

@@ -1,3 +1,7 @@
+//Score variable to pass to the other states
+var GAME_FINAL_SCORE = 0;
+
+
 //General Config
 const config = {
     tileOffSet: 64,
@@ -47,6 +51,22 @@ const environment = {
     coinSpeed: 15
 };
 
+
+const gameSound = {
+    coin: 'sounds/coin.wav',
+    coinVolume: 1,
+    jump: 'sounds/jump.mp3',
+    jumpVolume: 0.2,
+    scream: 'sounds/damage-scream.wav',
+    screamVolume: 0.5,
+    itemThud: 'sounds/thud.mp3',
+    itemThudVolume: 0.5,
+    playerThud: 'sounds/thud.mp3',
+    playerThudVolume: 0.5,
+    bgmLose: 'sounds/lose.wav',
+    bgmLoseVolume: 0.5
+}
+
 //Player related configuration
 const playerConfig = {
     playerImage: 'assets/player.png',
@@ -59,8 +79,8 @@ const playerConfig = {
     playerHealth: 100,
     playerMaxHealth: 100,
     maceDamage: 20,
-    itemHeal: 5,
-    itemScore: 20,
+    itemHeal: 10,
+    itemScore: 10,
     //Idle animation ------
     idleLeftAnimationArray: [0, 1, 2, 3, 4, 5],
     idleRightAnimationArray: [20, 21, 22, 23, 24, 25],
@@ -100,8 +120,7 @@ const gamePlay = {
     healingItemXMax: 14
 };
 
-//Score variable to pass to the other states
-var GAME_FINAL_SCORE = 0;
+
 
 
 var LoadState = {
@@ -133,6 +152,12 @@ var LoadState = {
             playerConfig.playerSizeX,
             playerConfig.playerSizeY
         );
+
+        game.load.audio('coin', gameSound.coin);
+        game.load.audio('jump', gameSound.jump);
+        game.load.audio('scream', gameSound.scream);
+        game.load.audio('itemThud', gameSound.itemThud);
+        game.load.audio('bgmLose', gameSound.bgmLose);
 
     },
     create: function () {
