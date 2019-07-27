@@ -36,7 +36,7 @@ const environmentConfig = {
     grassImage: 'assets/Ground/GrassMid.png',
     grassYOffset: 10,
     //mace Sprite Config  -------------------------
-    maceImage: 'assets/env/mace.png',
+    maceImage: 'assets/env/Mace.png',
     maceSizeX: 64,
     maceSizeY: 64,
     maceAnimationArray: [0],
