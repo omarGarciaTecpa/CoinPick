@@ -28,7 +28,7 @@ const textMessages = {
 }
 
 //Environment related Config
-const environment = {
+const environmentConfig = {
     backgroundImage: 'assets/Background.png',
     menuBackgroundImage: 'assets/Background.png',
     winBackgroundImage: 'assets/Background.png',
@@ -127,25 +127,25 @@ const gamePlay = {
 var LoadState = {
     preload: function () {
         //Preload asset images 
-        game.load.image('background', environment.backgroundImage);
-        game.load.image('menuBackground', environment.menuBackgroundImage);
-        game.load.image('loseBackground', environment.loseBackgroundImage);
-        game.load.image('winBackground', environment.winBackgroundImage);
-        game.load.image('grass-mid', environment.grassImage);
+        game.load.image('background', environmentConfig.backgroundImage);
+        game.load.image('menuBackground', environmentConfig.menuBackgroundImage);
+        game.load.image('loseBackground', environmentConfig.loseBackgroundImage);
+        game.load.image('winBackground', environmentConfig.winBackgroundImage);
+        game.load.image('grass-mid', environmentConfig.grassImage);
         game.load.image('mute', gamePlay.muteButton);
 
         game.load.spritesheet(
             'mace',
-            environment.maceImage,
-            environment.maceSizeX,
-            environment.maceSizeY
+            environmentConfig.maceImage,
+            environmentConfig.maceSizeX,
+            environmentConfig.maceSizeY
         );
 
         game.load.spritesheet(
             'coin',
-            environment.coinImage,
-            environment.coinSizeX,
-            environment.coinSizeY
+            environmentConfig.coinImage,
+            environmentConfig.coinSizeX,
+            environmentConfig.coinSizeY
         );
 
         game.load.spritesheet(

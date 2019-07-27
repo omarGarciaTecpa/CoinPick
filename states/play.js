@@ -248,7 +248,7 @@ var PlayState = {
                 platformTile = group.create(i * config.tileOffSet, game.world.height - (config.tileOffSet * verticalStart), 'grass-mid');
 
                 //COnfigure the hitbox
-                platformTile.body.setSize(config.tileOffSet, config.tileOffSet, 0, environment.grassYOffset);
+                platformTile.body.setSize(config.tileOffSet, config.tileOffSet, 0, environmentConfig.grassYOffset);
 
                 //Make unmovable so it won´t fall if pushed
                 platformTile.body.immovable = true;
@@ -520,9 +520,9 @@ var PlayState = {
             gamePlay.damageItemLifespan,
             'mace',
             {
-                animationArray: environment.maceAnimationArray,
-                frameRate: environment.maceFramerate,
-                speed: environment.maceSpeed
+                animationArray: environmentConfig.maceAnimationArray,
+                frameRate: environmentConfig.maceFramerate,
+                speed: environmentConfig.maceSpeed
             }
         );
 
@@ -541,9 +541,9 @@ var PlayState = {
             gamePlay.healingItemLifespan,
             'coin',
             {
-                animationArray: environment.coinAnimationArray,
-                frameRate: environment.coinFramerate,
-                speed: environment.coinSpeed
+                animationArray: environmentConfig.coinAnimationArray,
+                frameRate: environmentConfig.coinFramerate,
+                speed: environmentConfig.coinSpeed
             }
         );
     },
