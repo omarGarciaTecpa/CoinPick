@@ -489,7 +489,7 @@ var PlayState = {
         tempItem.body.bounce.y = 0.2;
         tempItem.lifespan = lifespan;
 
-        if (animationConfig) {
+        if (animationConfig != null) {
             tempItem.animations.add(
                 'animate',
                 animationConfig.animationArray,
