@@ -38,6 +38,15 @@ var PlayState = {
         //Setup sound 
         this.setupSound();
 
+        button = game.add.button(
+            game.world.width - 2 * config.tileOffSet,
+            config.tileOffSet,
+            'mute',
+            function () {
+                game.sound.mute = !game.sound.mute;
+            },
+            this);
+
         //add a group for platforms
         this.platformsGroup = game.add.group();
         this.platformsGroup.enableBody = true;

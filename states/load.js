@@ -5,7 +5,7 @@ var GAME_FINAL_SCORE = 0;
 //General Config
 const config = {
     tileOffSet: 64,
-    showDebug: true
+    showDebug: false
 }
 
 //Text Message Config
@@ -15,8 +15,8 @@ const textMessages = {
     instructionMsg: 'Press "space" to play',
     instructionColor: '#000',
     timerColor: '#000',
-    timerMinutes: 0,
-    timerSeconds: 20,
+    timerMinutes: 1,
+    timerSeconds: 30,
     scoreColor: '#000',
     healthColor: '#000',
     loseGameTitle: "You Lost",
@@ -102,6 +102,7 @@ const playerConfig = {
 
 //Gameplay Config
 const gamePlay = {
+    muteButton: 'assets/mute.png',
     //Damage Item Config ---------------------------
     damageItemTime: 1000,
     damageItemAmount: 120,
@@ -131,6 +132,7 @@ var LoadState = {
         game.load.image('loseBackground', environment.loseBackgroundImage);
         game.load.image('winBackground', environment.winBackgroundImage);
         game.load.image('grass-mid', environment.grassImage);
+        game.load.image('mute', gamePlay.muteButton);
 
         game.load.spritesheet(
             'mace',
